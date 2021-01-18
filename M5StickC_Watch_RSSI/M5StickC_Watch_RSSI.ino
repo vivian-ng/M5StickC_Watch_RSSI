@@ -35,6 +35,11 @@
   #define HOSTNAME "m5stickc"
 #endif
 
+// default hostname if not defined in config.h
+#ifndef RESYNC_SECONDS
+  #define RESYNC_SECONDS 100000
+#endif
+
 // use the WiFi settings in config.h file
 char* ssid       = WIFI_SSID;
 char* password   = WIFI_PASSWORD; 
@@ -44,6 +49,9 @@ char* ntpServer =  "ntp.nict.jp";
 
 // define what timezone you are in
 int timeZone = TIMEZONE * 3600;
+
+// time in seconds since last resync
+long timeSinceResync = 0;
 
 // delay workarround
 int tcount = 0;
@@ -108,6 +116,7 @@ void timeSync() {
       delay(500);
       M5.Lcd.fillScreen(BLACK);
     }
+    timeSinceResync = 0;
 }
 
 void buttons_code() {
@@ -132,6 +141,9 @@ void buttons_code() {
 // Printing WiFi RSSI and time to LCD
 void doTime() {
   //if (timeToDo(1000)) {
+    timeSinceResync++;
+    if(timeSinceResync > RESYNC_SECONDS)
+      timeSync();
     vTaskDelay(1000 / portTICK_PERIOD_MS);
     M5.Lcd.setCursor(10, 10);
     M5.Lcd.setTextSize(1);
